@@ -4,15 +4,10 @@ namespace DotNetty.Codecs.Stomp
 {
     public class DefaultStompHeadersSubFrame : IStompHeadersSubFrame
     {
-        public DefaultStompHeadersSubFrame(StompCommand command)
-            : this(command, null)
-        {
-            
-        }
-        public DefaultStompHeadersSubFrame(StompCommand command, DefaultStompHeaders headers)
+        public DefaultStompHeadersSubFrame(StompCommand command, DefaultStompHeaders headers = null)
         {
             this.Command = command;
-            this.Headers = headers;
+            this.Headers = headers ?? new DefaultStompHeaders();
             this.Result = DecoderResult.Success;
         }
 

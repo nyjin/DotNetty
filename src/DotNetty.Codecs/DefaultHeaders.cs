@@ -46,6 +46,11 @@ namespace DotNetty.Codecs
         {
         }
 
+        public DefaultHeaders(IHashingStrategy<TKey> nameHashingStrategy, IValueConverter<TValue> valueConverter)
+            : this(nameHashingStrategy, valueConverter, DefaultKeyNameValidator, 16)
+        {
+        }
+
         public DefaultHeaders(IHashingStrategy<TKey> nameHashingStrategy, IValueConverter<TValue> valueConverter, INameValidator<TKey> nameValidator) 
             : this(nameHashingStrategy, valueConverter, nameValidator, 16)
         {

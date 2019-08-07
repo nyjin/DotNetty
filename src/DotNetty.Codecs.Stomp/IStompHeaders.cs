@@ -6,6 +6,5 @@ namespace DotNetty.Codecs.Stomp
 
     public interface IStompHeaders : IHeaders<ICharSequence, ICharSequence>
     {
-
     }
 }

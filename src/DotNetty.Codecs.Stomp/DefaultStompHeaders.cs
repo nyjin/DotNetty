@@ -6,6 +6,12 @@ namespace DotNetty.Codecs.Stomp
 
     public class DefaultStompHeaders : DefaultHeaders<ICharSequence, ICharSequence>, IStompHeaders
     {
+        public DefaultStompHeaders()
+            : base(AsciiString.CaseSensitiveHasher, CharSequenceValueConverter.Default)
+        {
+
+        }
+
         public DefaultStompHeaders(IValueConverter<ICharSequence> valueConverter)
             : base(valueConverter)
         {

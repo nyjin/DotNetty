@@ -193,7 +193,7 @@ namespace DotNetty.Codecs.Stomp
                     }
                     else if (valid)
                     {
-                        headers.Add(new StringCharSequence(key), new StringCharSequence(buf.ToString()));
+                        headers.Add(new AsciiString(key), new AsciiString(buf.ToString()));
                     }
                     else if (this.validateHeaders)
                     {

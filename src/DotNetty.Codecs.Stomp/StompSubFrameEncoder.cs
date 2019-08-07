@@ -54,7 +54,7 @@ namespace DotNetty.Codecs.Stomp
         {
             IByteBuffer buf = context.Allocator.Buffer();
 
-            buf.WriteCharSequence(new StringCharSequence(frame.Command.ToString()), Encoding.ASCII);
+            buf.WriteCharSequence(new AsciiString(frame.Command.ToString()), Encoding.ASCII);
             buf.WriteByte(StompConstants.LF);
             AsciiHeadersEncoder headersEncoder = new AsciiHeadersEncoder(buf, AsciiHeadersEncoder.SeparatorType.Colon, AsciiHeadersEncoder.NewlineType.LF);
             foreach (HeaderEntry<ICharSequence, ICharSequence> entry in frame.Headers)
