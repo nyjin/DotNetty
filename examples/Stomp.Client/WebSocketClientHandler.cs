@@ -28,7 +28,7 @@ namespace Stomp.Client
         public Task HandshakeCompletion => this.completionSource.Task;
 
         public override void ChannelActive(IChannelHandlerContext ctx) => 
-            this.handshaker.HandshakeAsync(ctx.Channel).LinkOutcome(this.completionSource);
+            this.handshaker.HandshakeAsync(ctx.Channel);
 
         public override void ChannelInactive(IChannelHandlerContext context)
         {
