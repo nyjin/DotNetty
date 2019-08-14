@@ -2,17 +2,23 @@
 
 namespace Stomp.Client
 {
+    using System.Collections.Generic;
+    using System.Diagnostics.Contracts;
+    using System.Linq;
     using System.Net;
     using System.Net.Security;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using DotNetty.Buffers;
+    using DotNetty.Codecs;
+    using DotNetty.Codecs.Compression;
     using DotNetty.Codecs.Http;
     using DotNetty.Codecs.Http.WebSockets;
+    using DotNetty.Codecs.Http.WebSockets.Extensions;
     using DotNetty.Codecs.Http.WebSockets.Extensions.Compression;
     using DotNetty.Codecs.Stomp;
     using DotNetty.Common.Internal.Logging;
-    using DotNetty.Common.Utilities;
     using DotNetty.Handlers.Logging;
     using DotNetty.Handlers.Timeout;
     using DotNetty.Handlers.Tls;
@@ -34,7 +40,7 @@ namespace Stomp.Client
             Log.Logger = new LoggerConfiguration()
                          .MinimumLevel.Debug()
                          .Enrich.FromLogContext()
-                         .WriteTo.File("logs\\app.log", LogEventLevel.Debug, rollingInterval: RollingInterval.Hour)
+                         .WriteTo.File("logs\\app.log", LogEventLevel.Debug, rollingInterval: RollingInterval.Day)
                          .CreateLogger();
             ExampleHelper.SetConsoleLogger();
             InternalLoggerFactory.DefaultFactory.AddSerilog(Log.Logger);
@@ -58,8 +64,6 @@ namespace Stomp.Client
             {
                 
                 var bootstrap = new Bootstrap();
-                
-
                 bootstrap
                     .Group(group)
                     .Option(ChannelOption.TcpNodelay, true)
@@ -79,8 +83,9 @@ namespace Stomp.Client
                         uri,
                         WebSocketVersion.V13,
                         null,
-                        true,
+                        false,
                         new DefaultHttpHeaders()));
+                var stompHandler = new StompClientHandler(uri.AbsoluteUri, id, passcode, topic, auth);
 
                 bootstrap.Handler(
                     new ActionChannelInitializer<IChannel>(
@@ -90,21 +95,15 @@ namespace Stomp.Client
                             var tlsHandler = 
                                 new TlsHandler(stream => new SslStream(stream, true, (sender, certificate, chain, errors) => true), new ClientTlsSettings(uri.AbsoluteUri));
 
+                            stompHandler.Channel = channel;
+
                             pipeline.AddLast("idle", new IdleStateHandler(0, 0, 0));
                             //pipeline.AddLast("client tls", tlsHandler);
                             pipeline.AddLast("logging", new LoggingHandler());
                             pipeline.AddLast("http codec", new HttpClientCodec());
-                            pipeline.AddLast("http aggregator", new HttpObjectAggregator(8192));
+                            pipeline.AddLast("http aggregator", new HttpObjectAggregator(64*1024));
                             //pipeline.AddLast("websocket handler", WebSocketClientCompressionHandler.Instance);
-                            pipeline.AddLast(
-                                "websocket handler",
-                                webSocketHandler);
-                            pipeline.AddLast("websocket frame aggregator", new WebSocketFrameAggregator(65536));
-                            //pipeline.AddLast("websocket client handler", webSocketHandler);
-                            pipeline.AddLast("stomp-decoder", new StompSubFrameDecoder());
-                            pipeline.AddLast("stomp-encoder", new StompSubFrameEncoder());
-                            pipeline.AddLast("aggregator", new StompSubFrameAggregator(1048576));
-                            pipeline.AddLast("handler", stompHandler);
+                            pipeline.AddLast("websocket client handler", webSocketHandler);
                         }));
 
                 IChannel ch = await bootstrap.ConnectAsync(uri.Host, port);
@@ -118,32 +117,6 @@ namespace Stomp.Client
                 {
                     Thread.Sleep(100);
                     string msg = Console.ReadLine();
-
-                    //if (msg == null)
-                    //{
-                    //    break;
-                    //}
-                    //else if ("bye".Equals(msg.ToLower()))
-                    //{
-                    //    await ch.WriteAndFlushAsync(new CloseWebSocketFrame());
-                    //    break;
-                    //}
-                    //else if ("ping".Equals(msg.ToLower()))
-                    //{
-                    //    var frame = new PingWebSocketFrame(
-                    //        Unpooled.WrappedBuffer(
-                    //            new byte[]
-                    //            {
-                    //                8, 1, 8, 1
-                    //            }));
-
-                    //    await ch.WriteAndFlushAsync(frame);
-                    //}
-                    //else
-                    //{
-                    //    WebSocketFrame frame = new TextWebSocketFrame(msg);
-                    //    await ch.WriteAndFlushAsync(frame);
-                    //}
                 }
 
                 await ch.CloseAsync();
@@ -158,11 +131,7 @@ namespace Stomp.Client
             }
         }
     }
-
-    /**
-     * STOMP client inbound handler implementation, which just passes received messages to listener
-     */
-    public class StompClientHandler : SimpleChannelInboundHandler<IStompFrame>
+    public class StompWebSocketDecoder : MessageToMessageDecoder<WebSocketFrame>
     {
         public string Host { get; }
 
@@ -172,7 +141,15 @@ namespace Stomp.Client
 
         public string Topic { get; }
 
-        public string Authorization { get; }
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="StringEncoder" /> class with the specified character
+        ///     set..
+        /// </summary>
+        /// <param name="encoding">Encoding.</param>
+        public StompWebSocketDecoder(Encoding encoding)
+        {
+            this.encoding = encoding ?? throw new NullReferenceException("encoding");
+        }
 
         /// <inheritdoc />
         public StompClientHandler(string host, string login, string passcode, string topic, string auth)
@@ -183,16 +160,20 @@ namespace Stomp.Client
             this.Topic = topic;
             this.Authorization = auth;
         }
+    }
 
-        private enum ClientState
+    public class StompSubFramePublicEncoder : StompSubFrameEncoder
+    {
+        public void Encode(IChannelHandlerContext context, IStompSubFrame message, List<object> output)
         {
-            AUTHENTICATING,
-            AUTHENTICATED,
-            SUBSCRIBED,
-            DISCONNECTING
+            base.Encode(context, message, output);
         }
+    }
 
-        private ClientState _state;
+
+    public class StompWebSocketEncoder : MessageToMessageEncoder<IStompSubFrame>
+    {
+        StompSubFramePublicEncoder encoder = new StompSubFramePublicEncoder();
 
         public void ActiveStomp(IChannel channel)
         {
@@ -214,25 +195,7 @@ namespace Stomp.Client
         {
             base.ChannelActive(context);
 
-            //this._state = ClientState.AUTHENTICATING;
-            //IStompFrame connFrame = new DefaultStompFrame(StompCommand.CONNECT);
-            //connFrame.Headers.Set(StompHeaderNames.AcceptVersion, new AsciiString("1.0,1.1,1.2"));
-            ////connFrame.Headers.Set(StompHeaderNames.Host, new AsciiString(Host));
-            //connFrame.Headers.Set(StompHeaderNames.Login, new AsciiString(Login));
-            //connFrame.Headers.Set(StompHeaderNames.PassCode, new AsciiString(Passcode));
-            //connFrame.Headers.Set(StompHeaderNames.HeartBeat, new AsciiString("5000,5000"));
-            //connFrame.Headers.Set(new AsciiString("Authorization"), new AsciiString(Authorization));
-            //context.WriteAndFlushAsync(connFrame);
-
-
-        }
-
-        protected override void ChannelRead0(IChannelHandlerContext ctx, IStompFrame msg)
-        {
-            string subscrReceiptId = "001";
-            string disconReceiptId = "002";
-
-            switch (msg.Command)
+            try
             {
                 case StompCommand.CONNECTED:
                     IStompFrame subscribeFrame = new DefaultStompFrame(StompCommand.SUBSCRIBE);
@@ -249,43 +212,6 @@ namespace Stomp.Client
                 default:
                     break;
             }
-
-            //case StompCommand.RECEIPT:
-            //    var receiptHeader = subscribeFrame.Headers.Get(StompHeaderNames.ReceiptId, new AsciiString(string.Empty));
-            //    if (state == ClientState.AUTHENTICATED && receiptHeader.ContentEquals(new AsciiString(subscrReceiptId)))
-            //    {
-            //        StompFrame msgFrame = new DefaultStompFrame(StompCommand.SEND);
-            //        msgFrame.Headers.set(StompHeaders.DESTINATION, StompClient.TOPIC);
-            //        msgFrame.content().writeBytes("some payload".getBytes());
-            //        System.out.println("subscribed, sending message frame: " + msgFrame);
-            //        state = ClientState.SUBSCRIBED;
-            //        ctx.writeAndFlush(msgFrame);
-            //    } else if (state == ClientState.DISCONNECTING && receiptHeader.equals(disconReceiptId)) {
-            //        System.out.println("disconnected");
-            //        ctx.close();
-            //    } else {
-            //        throw new IllegalStateException("received: " + frame + ", while internal state is " + state);
-            //    }
-            //    break;
-            //case MESSAGE:
-            //    if (state == ClientState.SUBSCRIBED) {
-            //        System.out.println("received frame: " + frame);
-            //        StompFrame disconnFrame = new DefaultStompFrame(StompCommand.DISCONNECT);
-            //        disconnFrame.Headers.set(StompHeaders.RECEIPT, disconReceiptId);
-            //        System.out.println("sending disconnect frame: " + disconnFrame);
-            //        state = ClientState.DISCONNECTING;
-            //        ctx.writeAndFlush(disconnFrame);
-            //    }
-            //    break;
-            //default:
-            //    break;
-        }
-
-        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)
-        {
-            Console.WriteLine("Exception: " + exception);
-            //this.completionSource.TrySetException(exception);
-            ctx.CloseAsync();
         }
     }
 }

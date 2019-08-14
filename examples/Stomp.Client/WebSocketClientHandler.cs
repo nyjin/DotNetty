@@ -10,6 +10,7 @@ namespace Stomp.Client
     using System.Threading.Tasks;
     using DotNetty.Codecs.Http;
     using DotNetty.Codecs.Http.WebSockets;
+    using DotNetty.Codecs.Stomp;
     using DotNetty.Common.Concurrency;
     using DotNetty.Common.Utilities;
     using DotNetty.Transport.Channels;
@@ -44,6 +45,7 @@ namespace Stomp.Client
                 {
                     this.handshaker.FinishHandshake(ch, (IFullHttpResponse)msg);
                     Console.WriteLine("WebSocket Client connected!");
+
                     this.completionSource.TryComplete();
                 }
                 catch (WebSocketHandshakeException e)
@@ -54,7 +56,6 @@ namespace Stomp.Client
 
                 return;
             }
-
 
             if (msg is IFullHttpResponse response)
             {
