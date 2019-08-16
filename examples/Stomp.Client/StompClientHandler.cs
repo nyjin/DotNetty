@@ -6,6 +6,7 @@
 namespace Stomp.Client
 {
     using System;
+    using System.Text;
     using DotNetty.Codecs.Http.WebSockets;
     using DotNetty.Codecs.Stomp;
     using DotNetty.Common.Utilities;
@@ -59,13 +60,7 @@ namespace Stomp.Client
             connFrame.Headers.Set(StompHeaderNames.HeartBeat, new AsciiString("5000,5000"));
             connFrame.Headers.Set(new AsciiString("Authorization"), new AsciiString(this.Authorization));
 
-            ch.Pipeline.AddLast("decoder", new StompWebSocketDecoder());
-            ch.Pipeline.AddLast("encoder", new StompWebSocketEncoder());
-            ch.Pipeline.AddLast("aggregator", new StompSubFrameAggregator(1048576));
-            ch.Pipeline.AddLast("handler", this);
-
             ch.WriteAndFlushAsync(connFrame);
-
         }
 
         /// <inheritdoc />
@@ -101,6 +96,7 @@ namespace Stomp.Client
                     Console.WriteLine("connected, sending subscribe frame: " + subscribeFrame);
                     this._state = ClientState.AUTHENTICATED;
                     ctx.WriteAndFlushAsync(subscribeFrame);
+
                     this.Channel.Pipeline.Replace("idle", "idle",
                         new IdleStateHandler(5000, 5000, 0));
                     break;

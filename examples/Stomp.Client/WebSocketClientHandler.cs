@@ -63,11 +63,7 @@ namespace Stomp.Client
                     $"Unexpected FullHttpResponse (getStatus={response.Status}, content={response.Content.ToString(Encoding.UTF8)})");
             }
 
-            if (msg is TextWebSocketFrame textFrame)
-            {
-                Console.WriteLine($"WebSocket Client received message: {textFrame.Text()}");
-            }
-            else if (msg is PongWebSocketFrame)
+            if (msg is PongWebSocketFrame)
             {
                 Console.WriteLine("WebSocket Client received pong");
             }
@@ -76,6 +72,8 @@ namespace Stomp.Client
                 Console.WriteLine("WebSocket Client received closing");
                 ch.CloseAsync();
             }
+
+            ctx.FireChannelRead(msg);
         }
 
         public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)

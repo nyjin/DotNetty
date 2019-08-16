@@ -5,10 +5,14 @@
     <TargetFrameworks>netcoreapp2.0;net451</TargetFrameworks>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">1.6.1</NetStandardImplicitPackageVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Program.cs~RF377379ee.TMP" />
+  </ItemGroup>
    <ItemGroup>
     <None Include="..\..\shared\dotnetty.com.pfx" Link="dotnetty.com.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
