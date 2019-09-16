@@ -36,7 +36,7 @@ namespace Stomp.Client
             }
 
             string rawContent = textFrame.Text();
-            IByteBuffer buff = ByteBufferUtil.WriteUtf8(context.Allocator, rawContent);
+            IByteBuffer buff = ByteBufferUtil.WriteAscii(context.Allocator, rawContent);
             output.Add(buff);
         }
     }

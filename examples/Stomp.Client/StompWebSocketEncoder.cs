@@ -30,9 +30,11 @@ namespace Stomp.Client
             this.encoder.Encode(context, message, outputList);
 
             CompositeByteBuffer buff = context.Allocator.CompositeBuffer().AddComponents(outputList.Cast<IByteBuffer>());
-            string rawContent = buff.ToString(0, buff.WritableBytes, Encoding.UTF8);
+            string rawContent = buff.ToString(0, buff.WritableBytes, Encoding.ASCII);
+
             TextWebSocketFrame frame = new TextWebSocketFrame(rawContent);
             output.Add(frame);
+
         }
     }
 }

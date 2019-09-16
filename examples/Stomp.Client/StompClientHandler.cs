@@ -40,16 +40,6 @@ namespace Stomp.Client
             this.Authorization = auth;
         }
 
-        private enum ClientState
-        {
-            AUTHENTICATING,
-            AUTHENTICATED,
-            SUBSCRIBED,
-            DISCONNECTING
-        }
-
-        private ClientState _state;
-
         public void ActiveStomp(IChannel ch)
         {
             IStompFrame connFrame = new DefaultStompFrame(StompCommand.CONNECT);
@@ -57,7 +47,7 @@ namespace Stomp.Client
             //connFrame.Headers.Set(StompHeaderNames.Host, new AsciiString(Host));
             connFrame.Headers.Set(StompHeaderNames.Login, new AsciiString(this.Login));
             connFrame.Headers.Set(StompHeaderNames.PassCode, new AsciiString(this.Passcode));
-            connFrame.Headers.Set(StompHeaderNames.HeartBeat, new AsciiString("5000,5000"));
+            connFrame.Headers.Set(StompHeaderNames.HeartBeat, new AsciiString("10000,10000"));
             connFrame.Headers.Set(new AsciiString("Authorization"), new AsciiString(this.Authorization));
 
             ch.WriteAndFlushAsync(connFrame);
@@ -68,14 +58,12 @@ namespace Stomp.Client
         {
             base.ChannelActive(context);
 
-            this._state = ClientState.AUTHENTICATING;
-
             IStompFrame connFrame = new DefaultStompFrame(StompCommand.CONNECT);
             connFrame.Headers.Set(StompHeaderNames.AcceptVersion, new AsciiString("1.0,1.1,1.2"));
             //connFrame.Headers.Set(StompHeaderNames.Host, new AsciiString(Host));
             connFrame.Headers.Set(StompHeaderNames.Login, new AsciiString(this.Login));
             connFrame.Headers.Set(StompHeaderNames.PassCode, new AsciiString(this.Passcode));
-            connFrame.Headers.Set(StompHeaderNames.HeartBeat, new AsciiString("5000,5000"));
+            connFrame.Headers.Set(StompHeaderNames.HeartBeat, new AsciiString("10000,10000"));
             connFrame.Headers.Set(new AsciiString("Authorization"), new AsciiString(this.Authorization));
             context.WriteAndFlushAsync(connFrame);
             
@@ -92,18 +80,18 @@ namespace Stomp.Client
                     IStompFrame subscribeFrame = new DefaultStompFrame(StompCommand.SUBSCRIBE);
                     subscribeFrame.Headers.Set(StompHeaderNames.Destination, new AsciiString(this.Topic));
                     subscribeFrame.Headers.Set(StompHeaderNames.Receipt, new AsciiString(subscrReceiptId));
-                    subscribeFrame.Headers.Set(StompHeaderNames.Id, new AsciiString("1"));
+                    subscribeFrame.Headers.Set(StompHeaderNames.Id, new AsciiString("sub-0"));
                     Console.WriteLine("connected, sending subscribe frame: " + subscribeFrame);
-                    this._state = ClientState.AUTHENTICATED;
                     ctx.WriteAndFlushAsync(subscribeFrame);
 
-                    this.Channel.Pipeline.Replace("idle", "idle",
-                        new IdleStateHandler(5000, 5000, 0));
+                    this.Channel.Pipeline.Replace("idle", "idle", new IdleStateHandler(10, 10, 0));
                     break;
 
                 default:
                     break;
             }
+
+            var content = msg.Content.ToString(Encoding.UTF8);
 
             //case StompCommand.RECEIPT:
             //    var receiptHeader = subscribeFrame.Headers.Get(StompHeaderNames.ReceiptId, new AsciiString(string.Empty));

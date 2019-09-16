@@ -4,6 +4,7 @@
 namespace DotNetty.Codecs.Stomp
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using DotNetty.Buffers;
     using DotNetty.Common.Utilities;
@@ -54,15 +55,22 @@ namespace DotNetty.Codecs.Stomp
         {
             IByteBuffer buf = context.Allocator.Buffer();
 
-            buf.WriteCharSequence(new AsciiString(frame.Command.ToString()), Encoding.ASCII);
-            buf.WriteByte(StompConstants.LF);
-            AsciiHeadersEncoder headersEncoder = new AsciiHeadersEncoder(buf, AsciiHeadersEncoder.SeparatorType.Colon, AsciiHeadersEncoder.NewlineType.LF);
-            foreach (HeaderEntry<ICharSequence, ICharSequence> entry in frame.Headers)
+            if (frame.Command != StompCommand.UNKNOWN)
             {
-                headersEncoder.Encode(entry);
+                buf.WriteCharSequence(new AsciiString(frame.Command.ToString()), Encoding.ASCII);
+                buf.WriteByte(StompConstants.LF);
             }
 
-            buf.WriteByte(StompConstants.LF);
+            if (frame.Headers.Count() != 0)
+            {
+                AsciiHeadersEncoder headersEncoder = new AsciiHeadersEncoder(buf, AsciiHeadersEncoder.SeparatorType.Colon, AsciiHeadersEncoder.NewlineType.LF);
+                foreach (HeaderEntry<ICharSequence, ICharSequence> entry in frame.Headers)
+                {
+                    headersEncoder.Encode(entry);
+                }
+
+                buf.WriteByte(StompConstants.LF);
+            }
             return buf;
         }
     }

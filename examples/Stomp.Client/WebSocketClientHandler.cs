@@ -66,14 +66,28 @@ namespace Stomp.Client
             if (msg is PongWebSocketFrame)
             {
                 Console.WriteLine("WebSocket Client received pong");
+                return;
             }
             else if (msg is CloseWebSocketFrame)
             {
                 Console.WriteLine("WebSocket Client received closing");
                 ch.CloseAsync();
+                return;
             }
 
-            ctx.FireChannelRead(msg);
+            else if (msg is TextWebSocketFrame textWebSocketFrame)
+            {
+                if (textWebSocketFrame.Content.ReadableBytes == 1)
+                {
+                    Console.WriteLine("Heartbeat received");
+                    return;
+                }
+                else
+                {
+                    ctx.FireChannelRead(textWebSocketFrame.Retain());
+                }
+                
+            }
         }
 
         public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)
