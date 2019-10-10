@@ -72,7 +72,6 @@ namespace Stomp.Client
         protected override void ChannelRead0(IChannelHandlerContext ctx, IStompFrame msg)
         {
             string subscrReceiptId = "001";
-            string disconReceiptId = "002";
 
             switch (msg.Command)
             {
@@ -90,38 +89,6 @@ namespace Stomp.Client
                 default:
                     break;
             }
-
-            var content = msg.Content.ToString(Encoding.UTF8);
-
-            //case StompCommand.RECEIPT:
-            //    var receiptHeader = subscribeFrame.Headers.Get(StompHeaderNames.ReceiptId, new AsciiString(string.Empty));
-            //    if (state == ClientState.AUTHENTICATED && receiptHeader.ContentEquals(new AsciiString(subscrReceiptId)))
-            //    {
-            //        StompFrame msgFrame = new DefaultStompFrame(StompCommand.SEND);
-            //        msgFrame.Headers.set(StompHeaders.DESTINATION, StompClient.TOPIC);
-            //        msgFrame.content().writeBytes("some payload".getBytes());
-            //        System.out.println("subscribed, sending message frame: " + msgFrame);
-            //        state = ClientState.SUBSCRIBED;
-            //        ctx.writeAndFlush(msgFrame);
-            //    } else if (state == ClientState.DISCONNECTING && receiptHeader.equals(disconReceiptId)) {
-            //        System.out.println("disconnected");
-            //        ctx.close();
-            //    } else {
-            //        throw new IllegalStateException("received: " + frame + ", while internal state is " + state);
-            //    }
-            //    break;
-            //case MESSAGE:
-            //    if (state == ClientState.SUBSCRIBED) {
-            //        System.out.println("received frame: " + frame);
-            //        StompFrame disconnFrame = new DefaultStompFrame(StompCommand.DISCONNECT);
-            //        disconnFrame.Headers.set(StompHeaders.RECEIPT, disconReceiptId);
-            //        System.out.println("sending disconnect frame: " + disconnFrame);
-            //        state = ClientState.DISCONNECTING;
-            //        ctx.writeAndFlush(disconnFrame);
-            //    }
-            //    break;
-            //default:
-            //    break;
         }
 
         public override void ExceptionCaught(IChannelHandlerContext ctx, Exception exception)

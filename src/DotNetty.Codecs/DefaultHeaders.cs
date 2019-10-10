@@ -36,7 +36,7 @@ namespace DotNetty.Codecs
         readonly IHashingStrategy<TKey> hashingStrategy;
         int size;
 
-        public DefaultHeaders(IValueConverter<TValue> valueConverter)
+        public DefaultHeaders(IValueConverter<TValue> valueConverter) 
             : this(DefaultKeyHashingStragety, valueConverter, DefaultKeyNameValidator, 16)
         {
         }

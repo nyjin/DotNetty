@@ -2,13 +2,11 @@
 
 namespace Stomp.Client
 {
-    using System.IO;
     using System.Net;
     using System.Net.Security;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using DotNetty.Buffers;
     using DotNetty.Codecs.Http;
     using DotNetty.Codecs.Http.WebSockets;
     using DotNetty.Codecs.Stomp;
@@ -20,7 +18,6 @@ namespace Stomp.Client
     using DotNetty.Transport.Channels;
     using DotNetty.Transport.Channels.Sockets;
     using Examples.Common;
-    using Newtonsoft.Json;
     using Serilog;
     using Serilog.Events;
 
@@ -30,6 +27,8 @@ namespace Stomp.Client
 
         static async Task RunClientAsync()
         {
+            var frame = new DefaultStompFrame(StompCommand.CONNECT);
+
             Log.Logger = new LoggerConfiguration()
                          .MinimumLevel.Debug()
                          .Enrich.FromLogContext()
@@ -38,21 +37,8 @@ namespace Stomp.Client
             ExampleHelper.SetConsoleLogger();
             InternalLoggerFactory.DefaultFactory.AddSerilog(Log.Logger);
 
-            var result = GetSubscriptionInfo("subscription.json");
-
-            var auth = result.Authorization;
-            var id = result.SubscriptionInfo.Login;
-            var passcode = result.SubscriptionInfo.Passcode;
-            var topic = result.SubscriptionInfo.TopicName;
-
-            var uri = new Uri("ws://172.19.136.161:30239/stomp");
-            var port = 30239;
-
-            //var uri = new Uri("wss://op-lime-pub.ncsoft.com/stomp");
-            //var port = 443;
-
-            //var uri = new Uri("ws://127.0.0.1:8080/ws");
-            //var port = 8080;
+            Uri uri = new Uri("ws://172.19.136.161:30239/stomp");
+            int port = 30239;
 
             var group = new MultithreadEventLoopGroup();
 
@@ -72,16 +58,8 @@ namespace Stomp.Client
                         null,
                         false,
                         new DefaultHttpHeaders()));
-                
-                //var webSocketHandler = new WebSocketClientProtocolHandler(
-                //    WebSocketClientHandshakerFactory.NewHandshaker(
-                //        uri,
-                //        WebSocketVersion.V13,
-                //        null,
-                //        false,
-                //        new DefaultHttpHeaders()));
 
-                var stompHandler = new StompClientHandler(uri.AbsoluteUri, id, passcode, topic, auth);
+                var stompHandler = new StompClientHandler(uri.AbsoluteUri, string.Empty, string.Empty, string.Empty, string.Empty);
 
                 bootstrap.Handler(
                     new ActionChannelInitializer<IChannel>(
@@ -112,10 +90,11 @@ namespace Stomp.Client
                         }));
 
                 IChannel ch = await bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), port);
+                
                 await webSocketHandler.HandshakeCompletion;
-                Console.WriteLine("WebSocket handshake completed.\n");
+                Console.WriteLine("WebSocket handshake completed.");
                 stompHandler.ActiveStomp(ch);
-                Console.WriteLine("send connect stomp frame.\n");
+                Console.WriteLine("send connect stomp frame.");
 
                 while (ch.IsWritable)
                 {
@@ -126,98 +105,12 @@ namespace Stomp.Client
             }
             catch (Exception ex)
             {
-                int i = 0;
+                Console.WriteLine($"Raise Exception: {ex.Message}");
             }
             finally
             {
                 await group.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1));
             }
         }
-
-        static LimeLoginResult GetSubscriptionInfo(string jsonFile)
-        {
-            Newtonsoft.Json.JsonSerializer serializer = new JsonSerializer();
-
-            using (var streamReader = new StreamReader(jsonFile))
-            {
-                using(var jsonReader = new JsonTextReader(streamReader))
-                {
-                    return serializer.Deserialize<LimeLoginResult>(jsonReader);
-                }
-            }
-
-            
-        }
-    }
-
-    /// <summary>
-    /// Websocket 서버 정보
-    /// </summary>
-    public class SubscriptionInfo
-    {
-        /// <summary>
-        /// STOMP Topic 구독 정보
-        /// </summary>
-        public string TopicName { get; set; }
-
-        /// <summary>
-        /// STOMP 서버 정보
-        /// </summary>
-        public string SubscribeUrl { get; set; }
-
-        /// <summary>
-        /// STOMP 서버 연결에 사용할 login
-        /// </summary>
-        public string Login { get; set; }
-
-        /// <summary>
-        /// STOMP 서버 연결에 사용할 passcode
-        /// </summary>
-        public string Passcode { get; set; }
-
-        /// <summary>
-        /// STOMP 전송 시 보낼 곳
-        /// </summary>
-        public string ServerAppDest { get; set; }
-    }
-
-    /// <summary>
-    /// 로그인 요청 결과
-    /// </summary>
-    public class LimeLoginResult
-    {
-        /// <summary>
-        /// Websocket 서버 정보
-        /// </summary>
-        public SubscriptionInfo SubscriptionInfo { get; set; }
-
-        /// <summary>
-        /// 기능 정보
-        /// </summary>
-        [JsonProperty(PropertyName = "feature")]
-        public FeatureInfo FeatureInfo { get; set; }
-
-        public string Authorization { get; set; }
-    }
-
-    /// <summary>
-    /// 기능 정보
-    /// </summary>
-    public class FeatureInfo
-    {
-        /// <summary>
-        /// 토픽 구독 여부
-        /// </summary>
-        public bool EnableSubscribeTopic { get; set; }
-
-        /// <summary>
-        /// 그룹 생성 비활성화
-        /// </summary>
-        public bool DisableCreateGroup { get; set; }
-
-        /// <summary>
-        /// 채널 생성 비활성화
-        /// </summary>
-        public bool DisableCreateChannel { get; set; }
     }
 }
