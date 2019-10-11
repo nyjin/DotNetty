@@ -301,7 +301,7 @@ public void UpdateCsProjectVersion(string version, FilePathCollection filePaths)
 
 
 Task("Default")
-  .IsDependentOn("Test")
+  .IsDependentOn("Compile")
   //.IsDependentOn("Update-Version")
   .IsDependentOn("Package-NuGet");
 

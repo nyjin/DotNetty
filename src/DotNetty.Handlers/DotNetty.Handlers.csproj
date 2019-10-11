@@ -3,26 +3,26 @@
   <PropertyGroup Label="NuGet">
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <IsPackable>true</IsPackable>
-    <PackageId>DotNetty.Handlers</PackageId>
+    <PackageId>UnOfficial.DotNetty.Handlers</PackageId>
     <Description>Application handlers for DotNetty</Description>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Copyright>© nyjin Corporation. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: handlers</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
     <VersionPrefix>0.6.0</VersionPrefix>
-    <Authors>Microsoft</Authors>
+    <Authors>zacronan</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyName>DotNetty.Handlers</AssemblyName>
+    <AssemblyName>UnOfficial.DotNetty.Handlers</AssemblyName>
     <AssemblyOriginatorKeyFile>../../DotNetty.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageTags>socket;tcp;protocol;netty;dotnetty;network;tls;ssl</PackageTags>
-    <PackageProjectUrl>https://github.com/Azure/DotNetty/</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/Azure/DotNetty/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/nyjin/DotNetty/</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/nyjin/DotNetty/blob/master/LICENSE.txt</PackageLicenseUrl>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/Azure/DotNetty/</RepositoryUrl>
+    <RepositoryUrl>https://github.com/nyjin/DotNetty/</RepositoryUrl>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
   </PropertyGroup>
   <ItemGroup>

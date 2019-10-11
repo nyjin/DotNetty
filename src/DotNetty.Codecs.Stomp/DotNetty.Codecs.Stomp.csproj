@@ -1,23 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <IsPackable>true</IsPackable>
-    <PackageId>DotNetty.Codecs.Stomp</PackageId>
+    <PackageId>UnOfficial.DotNetty.Codecs.Stomp</PackageId>
     <Description>Stomp codec for DotNetty</Description>
     <Copyright>© nyjin. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: Stomp codec</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <VersionPrefix>0.6.0</VersionPrefix>
-    <Authors>Microsoft</Authors>
+    <VersionPrefix>0.6.4</VersionPrefix>
+    <Authors>zacronan</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyName>DotNetty.Codecs.Stomp</AssemblyName>
+    <AssemblyName>UnOfficial.DotNetty.Codecs.Stomp</AssemblyName>
     <AssemblyOriginatorKeyFile>../../DotNetty.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageTags>socket;tcp;protocol;netty;dotnetty;network;Stomp</PackageTags>
+    <PackageTags>socket;tcp;protocol;netty;dotnetty;network;stomp</PackageTags>
     <PackageProjectUrl>https://github.com/nyjin/DotNetty/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/nyjin/DotNetty/blob/master/LICENSE.txt</PackageLicenseUrl>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
@@ -31,8 +31,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DotNetty.Common\DotNetty.Common.csproj" />
+    <ProjectReference Include="..\DotNetty.Common\DotNetty.Codecs.csproj" />
     <ProjectReference Include="..\DotNetty.Buffers\DotNetty.Buffers.csproj" />
-    <ProjectReference Include="..\DotNetty.Codecs\DotNetty.Codecs.csproj" />
     <ProjectReference Include="..\DotNetty.Transport\DotNetty.Transport.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">

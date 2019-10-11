@@ -7,7 +7,7 @@ namespace DotNetty.Codecs.Stomp
     public class DefaultStompHeaders : DefaultHeaders<ICharSequence, ICharSequence>, IStompHeaders
     {
         public DefaultStompHeaders()
-            : base(AsciiString.CaseSensitiveHasher, CharSequenceValueConverter.Default)
+            : base(AsciiString.CaseSensitiveHasher, CharSequenceValueConverter.Default, new NullNameValidator<ICharSequence>(), 16)
         {
 
         }
