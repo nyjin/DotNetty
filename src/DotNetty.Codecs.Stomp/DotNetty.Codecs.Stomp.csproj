@@ -30,8 +30,8 @@
     <Compile Include="..\shared\SharedAssemblyInfo.cs" Link="Properties\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DotNetty.Codecs\DotNetty.Codecs.csproj" />
     <ProjectReference Include="..\DotNetty.Common\DotNetty.Common.csproj" />
-    <ProjectReference Include="..\DotNetty.Common\DotNetty.Codecs.csproj" />
     <ProjectReference Include="..\DotNetty.Buffers\DotNetty.Buffers.csproj" />
     <ProjectReference Include="..\DotNetty.Transport\DotNetty.Transport.csproj" />
   </ItemGroup>
